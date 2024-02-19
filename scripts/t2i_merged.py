@@ -43,12 +43,9 @@ neg_prompt = "distorted, blur, smooth, low-quality, warm, haze, over-saturated, 
 prompts_list = [
     [prompt_prefix+"A young woman with a crown and a masterpiece necklace, at a royal event.", neg_prompt],
     [prompt_prefix+"A man with brown skin and a beard, looking at the viewer with dark eyes.", neg_prompt],
-    [prompt_prefix+"A colorful bird standing on the tree stick, open beak", neg_prompt],
-    [prompt_prefix+"A majestic tiger with blazing white fur, baring its sharp teeth in a ferocious roar.", neg_prompt],
+    [prompt_prefix+"A colorful bird standing on the tree, open beak", neg_prompt],
     ["masterpiece, best quality, red ice, red glacier, mountain, blue water",
      "(worst quality, low quality, lowres), blurry, bokeh, depth of field, error, censored, bar censor, text, speech bubble, artist name, signature, border, sketch, too dark",],
-    ["hyper detailed masterpiece, dynamic realistic digital art, awesome quality,Impenetrable brook,commitment wilderness,unadorned pond anti-aliasing,synchronicity,nautical,blood,wildfire,vaporizing,solar",
-     "deformed, distorted, (disfigured:1.3), too dark, poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, (mutated hands, mutated fingers, deformed hands, deformed fingers, extra fingers, missing fingers, extra digits, missing digits:1.6), disconnected limbs, mutation, mutated, ugly, disgusting, blurry, amputation,(((text))), (((watermark))),  bad-hands-5, bad-picture-chill-75v, bad_pictures, BadDream, UnrealisticDream, FastNegativeV2",],
 ]
 
 for i, prompts in enumerate(prompts_list):
@@ -69,7 +66,7 @@ for i, prompts in enumerate(prompts_list):
         torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow = 4), os.path.join("demo", save_name))
 
 
-
+import pdb; pdb.set_trace()
 ### >>>>>>>> >>>>>>>> ### >>>>>>>> >>>>>>>> ###
 ### PeRFlow-ArchitectureExterior
 ### >>>>>>>> >>>>>>>> ### >>>>>>>> >>>>>>>> ###
@@ -90,10 +87,10 @@ pipe.to("cuda", torch.float16)
 
 ## Sampling
 prompts_list = [
-    ["a small and beautiful modern house on a slope of a green hill, the hill has millions of tiny colorful wild flowers, blue sky as background, high details, masterpiece, highres, best quality, photo realistic, hyper detailed photo, ArchModern",
+    ["a small and beautiful modern house on a slope of a green hill, the hill has colorful wild flowers, blue sky as background, high details, masterpiece, highres, best quality, photo realistic, hyper detailed photo, ArchModern",
      "low quality, normal quality, lowres, monochrome, drawing, painting, sketch, (text, signature, watermark:1.2)"],
-    ["A futuristic and stunningly beautiful high-rise shopping center architectural structure with bold, futuristic design elements, blending seamlessly into the art form of digital illustration. Inspired by the works of Syd Mead. The scene showcases the center amidst a bustling city, its sleek lines contrasting with the urban environment. A warm color temperature adds vibrancy, highlighting the architectural details. ",
-     "(normal quality), (low quality), (worst quality), paintings, dark, sketches,fog,signature,soft, blurry,drawing,sketch, poor quality, uply text,type, word, logo, pixelated, low resolution.,saturated,high contrast, oversharpened,dirt,"],
+    ["snow,wall wood texture,new Chinese architecture, high quality, architectural photo, 8K, pool, <lora:add_detail:0.6>",
+        "signature, soft, blurry, drawing, sketch, poor quality, ugly, text, type, word, logo, pixelated, low resolution, saturated, high contrast, oversharpened"],
 ]
 
 for i, prompts in enumerate(prompts_list):
@@ -114,7 +111,7 @@ for i, prompts in enumerate(prompts_list):
         torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow = 4), os.path.join("demo", save_name))
 
 
-
+import pdb; pdb.set_trace()
 ### >>>>>>>> >>>>>>>> ### >>>>>>>> >>>>>>>> ###
 ### PeRFlow-realisticVisionV51
 ### >>>>>>>> >>>>>>>> ### >>>>>>>> >>>>>>>> ###
@@ -135,14 +132,10 @@ pipe.to("cuda", torch.float16)
 
 ## Sampling
 prompts_list = [
-    ["instagram photo, closeup face photo of 18 y.o swedish woman in dress, beautiful face, makeup, bokeh, motion blur",
+    ["instagram photo, closeup face photo of 18 y.o swedish woman in dress, beautiful face, makeup, bokeh",
         "(deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime, mutated hands and fingers:1.4), (deformed, distorted, disfigured:1.3), too dark, poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, disconnected limbs, mutation, mutated, ugly, disgusting, amputation",],
-    ["A face portrait photo of beautiful 26 year woman, cute face, wearing gray dress, happy face, cinematic shot, dramatic lighting",
+    ["A face portrait photo of handsome 26 year man, wearing gray shirt, happy face, cinematic shot, dramatic lighting",
         "(deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime, mutated hands and fingers:1.4), (deformed, distorted, disfigured:1.3), too dark, poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, disconnected limbs, mutation, mutated, ugly, disgusting, amputation",],
-    ["RAW photo, 8k uhd, dslr, high quality, film grain, highly detailed, masterpiece; a plate of fruit on a rustic wooden table, low-contrast",
-        "distorted, blur, smooth, low-quality, warm, haze, over-saturated, high-contrast, out of focus, dark",],
-    ["masterpiece, best quality, highres, a shiny car with a white number plate, white paint, realistic, sunset, gradient sky, quarry area",
-        "worst quality, low quality, normal quality, ugly woman, error, unfinished, sketch, illustration, too dark",],
 ]
 
 for i, prompts in enumerate(prompts_list):

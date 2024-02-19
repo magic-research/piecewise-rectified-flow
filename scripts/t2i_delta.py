@@ -45,8 +45,8 @@ prompts_list = [
     [prompt_prefix+"A majestic tiger with blazing white fur, baring its sharp teeth in a ferocious roar.", neg_prompt],
     ["masterpiece, best quality, red ice, red glacier, mountain, blue water",
      "(worst quality, low quality, lowres), blurry, bokeh, depth of field, error, censored, bar censor, text, speech bubble, artist name, signature, border, sketch, too dark",],
-    ["hyper detailed masterpiece, dynamic realistic digital art, awesome quality,Impenetrable brook,commitment wilderness,unadorned pond anti-aliasing,synchronicity,nautical,blood,wildfire,vaporizing,solar",
-     "deformed, distorted, (disfigured:1.3), too dark, poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, (mutated hands, mutated fingers, deformed hands, deformed fingers, extra fingers, missing fingers, extra digits, missing digits:1.6), disconnected limbs, mutation, mutated, ugly, disgusting, blurry, amputation,(((text))), (((watermark))),  bad-hands-5, bad-picture-chill-75v, bad_pictures, BadDream, UnrealisticDream, FastNegativeV2",],
+    ["a small and beautiful modern house on a slope of a green hill, the hill has millions of tiny colorful wild flowers, blue sky as background, high details, masterpiece, highres, best quality, photo realistic, hyper detailed photo, ArchModern",
+        "low quality, normal quality, lowres, monochrome, drawing, painting, sketch, (text, signature, watermark:1.2)"],
 ]
 
 Path("demo").mkdir(parents=True, exist_ok=True) 
