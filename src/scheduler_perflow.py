@@ -25,7 +25,6 @@ from diffusers.utils import BaseOutput
 from diffusers.utils.torch_utils import randn_tensor
 from diffusers.schedulers.scheduling_utils import KarrasDiffusionSchedulers, SchedulerMixin
 
-
 class Time_Windows():
     def __init__(self, t_initial=1, t_terminal=0, num_windows=4, precision=1./1000) -> None:
         self.t_initial = t_initial
@@ -42,11 +41,9 @@ class Time_Windows():
         
         t_start = self.t_initial + torch.floor(
             (timesteps - 0.1*self.precision - self.t_initial) / self.len_window
-        ) * self.len_window 
-        
+        ) * self.len_window
         t_end = t_start + self.len_window
         t_end = torch.clamp(t_end, min=self.t_terminal)
-        
         return t_start, t_end
     
 
@@ -185,6 +182,7 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         self.init_noise_sigma = 1.0
 
         self.time_windows = Time_Windows(t_initial=t_noise, t_terminal=t_clean, num_windows=num_time_windows, precision=1./num_train_timesteps)
+        print(f"### We recommend a num_inference_steps as a multiple of num_time_windows. It will be automatically rounded. We will support a non-multiple number soon.")
 
     def scale_model_input(self, sample: torch.FloatTensor, timestep: Optional[int] = None) -> torch.FloatTensor:
         """
@@ -214,11 +212,10 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         """
         if num_inference_steps < self.config.num_time_windows:
             num_inference_steps = self.config.num_time_windows
-            print(f"### We suggest num_inference_steps to be greater or equal to num_time_windows. The num_inference_steps is set as {num_inference_steps}.")
         else:
             num_inference_steps = round(num_inference_steps/self.config.num_time_windows) * self.config.num_time_windows
             ##TODO:support a non-multiple number soon.
-            print(f"### We suggest to num_inference_steps to be a multiple of num_time_windows. The num_inference_steps is rounded as {num_inference_steps}. We will support a non-multiple number soon.")
+            # print(f"### We suggest to num_inference_steps to be a multiple of num_time_windows. The num_inference_steps is rounded as {num_inference_steps}. We will support a non-multiple number soon.")
         
         self.num_inference_steps = num_inference_steps
         self.dt = (self.config.t_clean - self.config.t_noise) / self.num_inference_steps # (0-1) / 1000 
