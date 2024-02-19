@@ -113,7 +113,7 @@ Complete python scripts and running dependencies are provided in ```scripts/t2i_
 
 [Rectified Flows](https://github.com/gnobitab/RectifiedFlow) proposes to contruct flow-based generative models via linear interpolation, and the trajectories of the learned flow can be straightened with a special operation called **reflow**. 
 However, the reflow procedure requires generating a synthetic dataset by simulating the entire pre-trained probability flow, which consumes a huge amount of storage and time, making it unfavorable for training large-scale foundation models.
-To address this limitation, we propose **piecewise reflow**. By dividing the pre-trained probability flows into multiple segments and straightening the intermediate probability flows inside each segment with reflow, we yield a piecewise linear probability flow that can be sampled within very few steps.
+To address this limitation, we propose **piecewise rectified flow**. By dividing the pre-trained probability flows into multiple segments and straightening the intermediate probability flows inside each segment with reflow, we yield a piecewise linear probability flow that can be sampled within very few steps.
 This divide-and-conquer strategy successfully avoids the cumbersome simulation of the whole ODE trajectory, thereby allowing us to perform the piecewise reflow operation online in training.
 
 <p align="middle">
@@ -125,7 +125,7 @@ It requires many steps to sample from the curved flow with ODE solvers.
 Instead, PeRFlow divides the sampling trajecories into multiple segments (two as an example here), and straightens each segment with the reflow operation. 
 A well-trained PeRFlow can generate high-quality images in very few steps because of its piecewise linear nature. 
 
-**Quantitative Results:**    We train a PeRFlow model on LAION-aesthetic-v2 data to accelerate SD-v1.5. We compare the FID with respect to three datasets, including: (1) a subset of 30K images from LAION  (2) a set of 30K images generated from SD-v1.5 with the [JourneyDB](https://huggingface.co/datasets/JourneyDB/JourneyDB) prompts (3) the validation set of MS-COCO2014. For all these datasets, we generate 30K images with different models using the corresponding text prompts. The results are presented in the following table. PeRFlow has lower FIDs in all the three comparions according to the numerical results.
+**Quantitative Results:**    We train a PeRFlow model on LAION-aesthetic-v2 data to accelerate SD-v1.5. We compare the FID with respect to three datasets, including: (1) a subset of 30K images from LAION,  (2) a set of 30K images generated from SD-v1.5 with the [JourneyDB](https://huggingface.co/datasets/JourneyDB/JourneyDB) prompts, (3) the validation set of MS-COCO2014. For all these datasets, we generate 30K images with different models using the corresponding text prompts. The results are presented in the following table. PeRFlow has lower FIDs in all the three comparions according to the numerical results.
 
 <div align="center" style="font-size:12px;">
   <table>
