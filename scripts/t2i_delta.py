@@ -26,7 +26,7 @@ pipe.scheduler = PeRFlowScheduler(
     prediction_type="epsilon",
     num_time_windows=4,
 )
-pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="epsilon", num_time_windows=4,)
+# pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="epsilon", num_time_windows=4,)
 pipe.to("cuda", torch.float16)
 
 

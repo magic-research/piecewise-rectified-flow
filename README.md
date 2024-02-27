@@ -104,7 +104,7 @@ for i, prompt in enumerate(prompts_list):
     torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow=4), f"tmp_{i}.png")
 ```
 
-Complete python scripts and running dependencies are provided in ```scripts/t2i_*.py``` and ```env/environment.yaml```. We will release other accelerated models and training details in future.
+We provide complete python scripts and the running dependencies in ```scripts``` and ```env```. Scripts for text-to-image and controlnet (depth/edge/pose/tile) are included. You can try efficient image enhancement via controlnet-tile models. We will release other accelerated models and training details in future.
 
 
 
@@ -122,10 +122,10 @@ This divide-and-conquer strategy successfully avoids the cumbersome simulation o
 
 As shown in the figure, the pre-trained probability flow (which can be transformed from a pre-trained diffusion model) maps random noise distribution $\pi_0$, to the data distribution $\pi_1$. 
 It requires many steps to sample from the curved flow with ODE solvers.
-Instead, PeRFlow divides the sampling trajecories into multiple segments (two as an example here), and straightens each segment with the reflow operation. 
+Instead, PeRFlow divides the sampling trajecotries into multiple segments (two as an example here), and straightens each segment with the reflow operation. 
 A well-trained PeRFlow can generate high-quality images in very few steps because of its piecewise linear nature. 
 
-**Quantitative Results:**    We train a PeRFlow model on LAION-aesthetic-v2 data to accelerate SD-v1.5. We compare the FID with respect to three datasets, including: (1) a subset of 30K images from LAION,  (2) a set of 30K images generated from SD-v1.5 with the [JourneyDB](https://huggingface.co/datasets/JourneyDB/JourneyDB) prompts, (3) the validation set of MS-COCO2014. For all these datasets, we generate 30K images with different models using the corresponding text prompts. The results are presented in the following table. PeRFlow has lower FIDs in all the three comparions according to the numerical results.
+**Quantitative Results:**    We train a PeRFlow model on LAION-aesthetic-v2 data to accelerate SD-v1.5. We compare the FID with respect to three datasets, including: (1) a subset of 30K images from LAION,  (2) a set of 30K images generated from SD-v1.5 with the [JourneyDB](https://huggingface.co/datasets/JourneyDB/JourneyDB) prompts, (3) the validation set of MS-COCO2014. For all these datasets, we generate 30K images with different models using the corresponding text prompts. The results are presented in the following table. PeRFlow has lower FIDs in all the three comparisons according to the numerical results.
 
 <div align="center" style="font-size:12px;">
   <table>
