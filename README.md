@@ -27,18 +27,25 @@ To accelerate their generation process, we propose an efficient flow-based gener
 We divide the probability flows induced from the diffusion models into multiple segments, and straightens the flow inside each segment with **reflow**. 
 Consequently, we yield PeRFlow, a piecewise linear probability flow which can efficiently generate **high-quality** images in just **4 steps**.
 
-**PeRFlow** has several features: 
+PeRFlow has several **features**: 
 
 - ```Fast Generation``` : PeRFlow can generate high-fidelity images in just 4 steps. The images generated from PeRFlow are more diverse than other fast-sampling models (such as [Latent Consistency Model](https://github.com/luosiallen/latent-consistency-model)). Moreover, as PeRFlow is a probability flow, it supports 8-step, 16-step, or even higher number of sampling steps to increase the generation quality.  
 - ```Efficient Training```: Fine-tuning PeRFlow based on Stable-Diffusion 1.5 converges in just **4,000** training iterations (with a batch size of 1024). In comparison, previous fast flow-based text-to-image model, [InstaFlow](https://github.com/gnobitab/InstaFlow), requires 25,000 training iteration with the same batch size in fine-tuning.  
+- ```Classifier-Free Guidance``` : PeRFlow is fully compatible with classifier-free guidance and supports negative prompts, which are important for pushing the generation quality to even higher level. Empirically, the CFG scale is similar to the original diffusion model.
 - ```Compatible with SD Workflows```: PeRFlow works with various stylized LORAs and generation/editing pipelines of the pretrained SD model.
   It can also be directly combined with conditional generation pipelines, such as ControlNet and IP-Adaptor.
   Additionally, by using it as a plug-and-play module, it is suitable with different pre-trained base models.
-- ```Classifier-Free Guidance``` : PeRFlow is fully compatible with classifier-free guidance and supports negative prompts, which are important for pushing the generation quality to even higher level. Empirically, the CFG scale is similar to the original diffusion model.
+
+
+<br>
+<p align="middle">
+  <img src='assets/gallery/perflow_refine.png' width='784'>
+</p>
 
 ## Gallery
-
-### 4-step generation with PeRFlow $\small{(512 \times 512)}$
+### 4-step generation via PeRFlow-T2I
+Generate high-quality images (512x512) with only 4 steps!
+<!-- $\small{(512 \times 512)}$  -->
 
 <p align="middle">
   <img src='assets/gallery/woman_txt1_cfg4-5_seed2.png' width='192'>
@@ -47,12 +54,11 @@ Consequently, we yield PeRFlow, a piecewise linear probability flow which can ef
   <img src='assets/gallery/car_txt11_cfg4-5_seed0.png' width='192'>
 </p>
 
-### 4-step PeRFlow Text-to-Image $\small{(512 \times 512)}$ + 4-step PeRFlow Refiner $\small{(1024 \times 1024)}$
+### 4-step enhancement via PeRFlow Refiner
+Use PeRFlow-Refiner to further enhance the image quality of the 4-step T2I results (e.g., from 512x512 to 1024x1204).
 
 <p align="middle">
-  <img src='assets/gallery/perflow_refine.png' width='784'>
-
-
+  <img src='assets/gallery/perflow_refine2.png' width='800'>
 </p>
 
 
