@@ -17,33 +17,31 @@
 </div>
 
 ## 🔥 News 
-- 2024/03/05 PeRFlow supports Wonder3D! We provide the accelerated PeRFlow-Wonder3D model for fast multiview generation. See [here](#efficient-multiview-generation-via-perflow-wonder3d).
+- 2024/03/05 PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
+- 2024/03/05 Training scripts is released in ```./scripts```. Run with ```bash scripts/train.sh```
 - 2024/02/29 We released the PeRFlow accelerated version of Stable Diffusion v2.1.
 - 2024/02/19 We released the PeRFlow acceleration module for Stable Diffusion v1.5, supporting various SD-v1.5 pipelines. Find inference scripts at ```scripts```.
 <!-- [Demos](https://github.com/magic-research/piecewise-rectified-flow/tree/main/scripts) for few-step text-to-image and image-enhancement are provided. -->
 
 ## Introduction
 
-Diffusion models are powerful generative models that exhibit impressive performances in various domain, e.g., images and videos. However, existing diffusion models are slow in the inference stage since they require many steps to simulate the stochastic/ordinary differential equation (SDE/ODE) before obtaining the generated contents. 
-To accelerate their generation process, we propose an efficient flow-based generative model, termed **piecewise rectified flow (PeRFlow)**. 
-We divide the probability flows induced from the diffusion models into multiple segments, and straightens the flow inside each segment with **reflow**. 
-Consequently, we yield PeRFlow, a piecewise linear probability flow which can efficiently generate **high-quality** images in just **4 steps**.
+Rectified Flow is a promising way for accelerating pre-trained diffusion models. However, the generation quality of prior fast flow-based models on Stable Diffusion (such as [InstaFlow](https://github.com/gnobitab/InstaFlow)) is unsatisfactory. 
+In this work, we adopt several improvements to the original reflow pipeline to significantly boost the performance of flow-based fast SD.
+Our new model learns a piecewise linear probability flow which can efficiently generate **high-quality** images in just **4 steps**, termed **piecewise rectified flow (PeRFlow)**.
+Moreover, we found the difference of model weights, ${\Delta}W = W_{\text{PeRFlow}} - W_{\text{SD}}$, can be used as a plug-and-play accelerator module on a wide-range of SD-based models.
 
-PeRFlow has several **features**: 
+Specifically, PeRFlow has several **features**: 
 
-- ```Fast Generation``` : PeRFlow can generate high-fidelity images in just 4 steps. The images generated from PeRFlow are more diverse than other fast-sampling models (such as [Latent Consistency Model](https://github.com/luosiallen/latent-consistency-model)). Moreover, as PeRFlow is a probability flow, it supports 8-step, 16-step, or even higher number of sampling steps to increase the generation quality.  
-- ```Efficient Training```: Fine-tuning PeRFlow based on Stable-Diffusion 1.5 converges in just **4,000** training iterations (with a batch size of 1024). In comparison, previous fast flow-based text-to-image model, [InstaFlow](https://github.com/gnobitab/InstaFlow), requires 25,000 training iteration with the same batch size in fine-tuning.  
-- ```Classifier-Free Guidance``` : PeRFlow is fully compatible with classifier-free guidance and supports negative prompts, which are important for pushing the generation quality to even higher level. Empirically, the CFG scale is similar to the original diffusion model.
+- ```Fast Generation``` : PeRFlow can generate high-fidelity images in just 4 steps. The images generated from PeRFlow are more diverse than other fast-sampling models (such as [LCM](https://github.com/luosiallen/latent-consistency-model)). Moreover, as PeRFlow is a continuous probability flow, it supports 8-step, 16-step, or even higher number of sampling steps to monotonically increase the generation quality.  
+- ```Efficient Training```: Fine-tuning PeRFlow based on SD 1.5 converges in just **4,000** training iterations (with a batch size of 1024). In comparison, previous fast flow-based text-to-image model, [InstaFlow](https://github.com/gnobitab/InstaFlow), requires 25,000 training iteration with the same batch size in fine-tuning. Besides, PeRFlow does not require heavy data generation for reflow. 
 - ```Compatible with SD Workflows```: PeRFlow works with various stylized LORAs and generation/editing pipelines of the pretrained SD model.
-  It can also be directly combined with conditional generation pipelines, such as ControlNet and IP-Adaptor.
-  Additionally, by using it as a plug-and-play module, it is suitable with different pre-trained base models.
-
-
+  As a plug-and-play module, $\Delta W$ can be directly combined with other conditional generation pipelines, such as ControlNet, IP-Adaptor, multi-view generation.
+- ```Classifier-Free Guidance``` : PeRFlow is fully compatible with classifier-free guidance and supports negative prompts, which are important for pushing the generation quality to even higher level. Empirically, the CFG scale is similar to the original diffusion model.
 
 
 ## Applications
 ### Fast image generation via PeRFlow-T2I
-Generate high-quality images (512x512) with only 4 steps! A real-time video demo is shown here.
+Generate high-quality images (512x512) with only 4 steps!
 <p align="middle">
   <img src='assets/gallery/perflow_t2i_2.png' width='608'>
 <p>
@@ -52,7 +50,8 @@ Generate high-quality images (512x512) with only 4 steps! A real-time video demo
 
 
 ### Image enhancement via PeRFlow-Refiner
-Use PeRFlow-T2I and PeRFlow-Refiner together to generate astonishing x1024 images with lightweight SD-v1.5 backbones. We use 4-step PeRFlow-T2I to generate x512 images first, then upsample them to x1024 with 4-step PeRFlow-Refiner. Here, we plug in PeRFlow ${\Delta}W$ into the ControlNet-Tile pipeline for detail refinement.
+By plugging PeRFlow ${\Delta}W$ into the [ControlNet-Tile](https://huggingface.co/lllyasviel/control_v11f1e_sd15_tile) pipeline, we obtain PeRFlow-Refiner to upsample/refine images.
+We can use PeRFlow-T2I and PeRFlow-Refiner together to generate astonishing x1024 images with lightweight SD-v1.5 backbones. We use 4-step PeRFlow-T2I to generate x512 images first, then upsample them to x1024 with 4-step PeRFlow-Refiner. 
 
 <p align="middle">
   <img src='assets/gallery/perflow_t2i_refine.png' width='784'>
@@ -65,7 +64,7 @@ One also can use PeRFlow-Refiner separately to enhance texture and details of lo
 
 
 ### Efficient multiview generation via PeRFlow-Wonder3D
-*One*-step multiview generation via PeRFlow accelerated Wonder3D. Normal maps and color images are shown here. The prompts used are "a dog with glasses and cap", "a bird", and "a vintage car".
+*One*-step image-to-multiview is enabled by plugging PeRFlow $\Delta W$ into pre-trained [Wonder3D](https://github.com/xxlong0/Wonder3D). We can use PeRFlow-T2I and PeRFlow-Wonder3D together to generate multiview normal maps and textures from text prompts instantly. Here shows "a dog with glasses and cap", "a bird", and "a vintage car".
 <p align="middle">
   <img src='assets/gallery/multiview/dog_normal.png' width='480'>
   <img src='assets/gallery/multiview/dog_rgb.png' width='480'>
@@ -89,12 +88,12 @@ Plug PeRFlow ${\Delta}W$ into [controlnets](https://huggingface.co/lllyasviel) o
   <img src='assets/gallery/perflow_controlnet.png' width='784'>
 </p>
 
-[IP-adaptor](https://github.com/tencent-ailab/IP-Adapter) is also supported.
+Plug PeRFlow ${\Delta}W$ into [IP-adaptor](https://github.com/tencent-ailab/IP-Adapter).
 <p align="middle">
   <img src='assets/gallery/perflow_ip.png' width='784'>
 </p>
 
-[Prompt-to-Prompt](https://github.com/google/prompt-to-prompt) editing
+Editting with PeRFlow+[Prompt-to-Prompt](https://github.com/google/prompt-to-prompt)
 <p align="middle">
   <img src='assets/gallery/perflow_p2p.png' width='784'>
 </p>
@@ -104,8 +103,13 @@ Plug PeRFlow ${\Delta}W$ into [controlnets](https://huggingface.co/lllyasviel) o
 *Please refer to the [project page](https://piecewise-rectified-flow.github.io) for more results, including the comparison to LCM.*
 
 
-
 ## Demo Code
+
+Install environments with,
+
+```
+bash env/install.sh
+```
 
 PeRFlow acceleration yields the delta_weights ${\Delta}W$ corresponding to the pretrained SD-v1.5 model. The complete weights of UNet for inference are computed by $W = W_{\text{SD}} + {\Delta}W$, where $W_{\text{SD}}$ can be the vanilla SD-v1.5 model or its finetuned stylized versions. We provide the delta_weights for SD-v1.5 at [PeRFlow🤗](https://huggingface.co/hansyan). You can download the delta-weights and fuse them into your own SD pipelines. 
 
@@ -137,8 +141,8 @@ for i, prompt in enumerate(prompts_list):
     prompt = "RAW photo, 8k uhd, dslr, high quality, film grain, highly detailed, masterpiece; " + prompt
     neg_prompt = "distorted, blur, smooth, low-quality, warm, haze, over-saturated, high-contrast, out of focus, dark"
     samples = pipe(
-        prompt              = [prompt] * 8, 
-        negative_prompt     = [neg_prompt] * 8,
+        prompt              = [prompt], 
+        negative_prompt     = [neg_prompt],
         height              = 512,
         width               = 512,
         num_inference_steps = 8, 
@@ -151,7 +155,15 @@ for i, prompt in enumerate(prompts_list):
 
 We provide complete python scripts and the running dependencies in ```scripts``` and ```env```. Scripts for text-to-image and controlnet (depth/edge/pose/tile) are included. You can try efficient image enhancement via controlnet-tile models. We will release other accelerated models and training details in future.
 
+We provide fast text-to-multiview gradio interface in ```./Wonder3D``` based on [Wonder3D](https://github.com/xxlong0/Wonder3D).
+Install ```diffusers 0.19.3``` with ```pip install diffusers==0.19.3``` before running.
+Run by 
 
+```
+python Wonder3D/sd15_t2mv_gradio.py
+```
+
+In the Gradio interface, hit 'enter' to generate the multiview images after typing the text.
 
 
 ## Method: Accelerating Diffusion Models with Piecewise Rectified Flows
