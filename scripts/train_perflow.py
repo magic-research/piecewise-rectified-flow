@@ -118,15 +118,6 @@ def main(args):
     if make_train_dataset is None:
         raise NotImplementedError("Please implement `make_train_dataset` function.")
     
-    # if ("/mnt/bn/ic-research-agic-editing2/data/laion5b_aesv2_512plus_10M" in args.data_root) \
-    #     or ("/mnt/bn/ic-research-agic-editing2/data/laion5b_aesv2_512plus_human" in args.data_root):
-    #     from src.laion_bytenas import make_train_dataset
-    # elif "/mnt/bn/" in args.data_root:
-    #     from src.laion_local import make_train_dataset
-    # elif "hdfs://" in args.data_root:
-    #     from src.laion_hdfs import make_train_dataset
-    # else:
-    #     raise NotImplementedError
     
     if args.debug:
         world_size = 64

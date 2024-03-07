@@ -14,10 +14,9 @@
 [🤗 Models](https://huggingface.co/hansyan) 
 <!-- [[(🔥New) Code and Pre-trained Models](https://github.com/gnobitab/)] -->
 
-Contributions are welcomed!
 </div>
 
-## 🔥 News  
+## 🔥 News 
 - 2024/03/05 PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
 - 2024/03/05 Training scripts are released. Run with ```bash scripts/train.sh```
 - 2024/02/29 We released the PeRFlow accelerated version of Stable Diffusion v2.1.
