@@ -93,7 +93,7 @@ Plug PeRFlow ${\Delta}W$ into [IP-adaptor](https://github.com/tencent-ailab/IP-A
   <img src='assets/gallery/perflow_ip.png' width='784'>
 </p>
 
-Editting with PeRFlow+[Prompt-to-Prompt](https://github.com/google/prompt-to-prompt)
+Editing with PeRFlow+[Prompt-to-Prompt](https://github.com/google/prompt-to-prompt)
 <p align="middle">
   <img src='assets/gallery/perflow_p2p.png' width='784'>
 </p>
