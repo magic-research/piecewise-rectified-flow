@@ -18,7 +18,7 @@
 
 ## 🔥 News 
 - 2024/03/05 PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
-- 2024/03/05 Training scripts is released in ```./scripts```. Run with ```bash scripts/train.sh```
+- 2024/03/05 Training scripts are released. Run with ```bash scripts/train.sh```
 - 2024/02/29 We released the PeRFlow accelerated version of Stable Diffusion v2.1.
 - 2024/02/19 We released the PeRFlow acceleration module for Stable Diffusion v1.5, supporting various SD-v1.5 pipelines. Find inference scripts at ```scripts```.
 <!-- [Demos](https://github.com/magic-research/piecewise-rectified-flow/tree/main/scripts) for few-step text-to-image and image-enhancement are provided. -->
@@ -57,7 +57,7 @@ We can use PeRFlow-T2I and PeRFlow-Refiner together to generate astonishing x102
   <img src='assets/gallery/perflow_t2i_refine.png' width='784'>
 </p>
 
-One also can use PeRFlow-Refiner separately to enhance texture and details of low-res blurry images.
+One also can use PeRFlow-Refiner separately to enhance texture and details of low-res blurry images. Here are two examples: on the left, from x64 to x1024, and on the right, from x256 to x1024.
 <p align="middle">
   <img src='assets/gallery/perflow_refine2.png' width='800'>
 </p>
@@ -118,7 +118,7 @@ import torch, torchvision
 from diffusers import StableDiffusionPipeline, UNet2DConditionModel
 from src.utils_perflow import merge_delta_weights_into_unet
 from src.scheduler_perflow import PeRFlowScheduler
-delta_weights = UNet2DConditionModel.from_pretrained("hansyan/piecewise-rectified-flow-delta-weights", torch_dtype=torch.float16, variant="v0-1",).state_dict()
+delta_weights = UNet2DConditionModel.from_pretrained("hansyan/perflow-sd15-delta-weights", torch_dtype=torch.float16, variant="v0-1",).state_dict()
 pipe = StableDiffusionPipeline.from_pretrained("Lykon/dreamshaper-8", torch_dtype=torch.float16,)
 pipe = merge_delta_weights_into_unet(pipe, delta_weights)
 pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="epsilon", num_time_windows=4)
@@ -131,7 +131,7 @@ pipe.to("cuda", torch.float16)
 import torch, torchvision
 from diffusers.pipelines.stable_diffusion import StableDiffusionPipeline
 from src.scheduler_perflow import PeRFlowScheduler
-pipe = StableDiffusionPipeline.from_pretrained("hansyan/piecewise-rectified-flow-dreamshaper", torch_dtype=torch.float16)
+pipe = StableDiffusionPipeline.from_pretrained("hansyan/perflow-sd15-dreamshaper", torch_dtype=torch.float16)
 pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="epsilon", num_time_windows=4)
 pipe.to("cuda", torch.float16)
 

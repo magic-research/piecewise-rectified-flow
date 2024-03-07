@@ -6,7 +6,7 @@ CUDA_VISIBLE_DEVICES=0 accelerate launch \
     scripts/train_perflow.py \
         --data_root "" --resolution 512 --dataloader_num_workers 8 \
         --train_batch_size 16 --gradient_accumulation_steps 1 \
-        --pretrained_model_name_or_path "" \
+        --pretrained_model_name_or_path "stable-diffusion-v1-5" \
         --pred_type "epsilon" --loss_type "noise_matching" \
         --windows 4 --solving_steps 8 \
         --support_cfg --cfg_sync \
