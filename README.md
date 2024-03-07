@@ -3,7 +3,7 @@
 <div align="center">
 
 
-# <img src="assets/rocket-icon-png-21.png" width="40">PeRFlow: Accelerating Diffusion Models with Piecewise Rectified Flows
+# <img src="assets/rocket-icon-png-21.png" width="40">PeRFlow: Piecewise Rectified Flow as Universal Plug-and-Play Accelerator
 
 [Hanshu Yan](https://hanshuyan.github.io/)<sup>1</sup>, [Xingchao Liu](https://gnobitab.github.io/)<sup>2</sup>, [Jiachun Pan](https://scholar.google.com/citations?hl=en&user=nrOvfb4AAAAJ&view_op=list_works&sortby=pubdate)<sup>3</sup>, [Jun Hao Liew](https://scholar.google.com.sg/citations?user=8gm-CYYAAAAJ&hl=en)<sup>1</sup>, [Qiang Liu](https://www.cs.utexas.edu/~lqiang/)<sup>2</sup>, [Jiashi Feng](https://scholar.google.com/citations?user=Q8iay0gAAAAJ&hl=en&oi=ao)<sup>1</sup>  
 <sup>1</sup>ByteDance &nbsp; <sup>2</sup>UT Austin &nbsp; <sup>3</sup>NUS
@@ -11,14 +11,16 @@
 
 [🔰 Project Page](https://piecewise-rectified-flow.github.io)
 &nbsp;|&nbsp;
-[🤗 Model](https://huggingface.co/hansyan) 
+[🤗 Models](https://huggingface.co/hansyan) 
 <!-- [[(🔥New) Code and Pre-trained Models](https://github.com/gnobitab/)] -->
 
 </div>
 
-<!-- ## News 
-
-- 2024/02/19 We provide a demo in 🤗Hugging Face Space. Try it [here](https://huggingface.co). -->
+## 🔥 News 
+- 2024/03/05 PeRFlow supports Wonder3D! We provide the accelerated PeRFlow-Wonder3D model for fast multiview generation. See [here](#efficient-multiview-generation-via-perflow-wonder3d).
+- 2024/02/29 We released the PeRFlow accelerated version of Stable Diffusion v2.1.
+- 2024/02/19 We released the PeRFlow acceleration module for Stable Diffusion v1.5, supporting various SD-v1.5 pipelines. Find inference scripts at ```scripts```.
+<!-- [Demos](https://github.com/magic-research/piecewise-rectified-flow/tree/main/scripts) for few-step text-to-image and image-enhancement are provided. -->
 
 ## Introduction
 
@@ -37,38 +39,75 @@ PeRFlow has several **features**:
   Additionally, by using it as a plug-and-play module, it is suitable with different pre-trained base models.
 
 
-<br>
+
+
+## Applications
+### Fast image generation via PeRFlow-T2I
+Generate high-quality images (512x512) with only 4 steps! A real-time video demo is shown here.
 <p align="middle">
-  <img src='assets/gallery/perflow_refine.png' width='784'>
+  <img src='assets/gallery/perflow_t2i_2.png' width='608'>
+<p>
+
+<!-- A real-time demo: -->
+
+
+### Image enhancement via PeRFlow-Refiner
+Use PeRFlow-T2I and PeRFlow-Refiner together to generate astonishing x1024 images with lightweight SD-v1.5 backbones. We use 4-step PeRFlow-T2I to generate x512 images first, then upsample them to x1024 with 4-step PeRFlow-Refiner. Here, we plug in PeRFlow ${\Delta}W$ into the ControlNet-Tile pipeline for detail refinement.
+
+<p align="middle">
+  <img src='assets/gallery/perflow_t2i_refine.png' width='784'>
 </p>
 
-## Gallery
-### 4-step generation via PeRFlow-T2I
-Generate high-quality images (512x512) with only 4 steps!
-<!-- $\small{(512 \times 512)}$  -->
-
-<p align="middle">
-  <img src='assets/gallery/woman_txt1_cfg4-5_seed2.png' width='192'>
-  <img src='assets/gallery/cat_txt5_cfg4-5_seed6.png' width='192'>
-  <img src='assets/gallery/building_txt4_cfg4-5_seed6.png' width='192'>
-  <img src='assets/gallery/car_txt11_cfg4-5_seed0.png' width='192'>
-</p>
-
-### 4-step enhancement via PeRFlow Refiner
-Use PeRFlow-Refiner to further enhance the image quality of the 4-step T2I results (e.g., from 512x512 to 1024x1204).
-
+One also can use PeRFlow-Refiner separately to enhance texture and details of low-res blurry images.
 <p align="middle">
   <img src='assets/gallery/perflow_refine2.png' width='800'>
 </p>
 
 
-Please refer to the [project page](https://piecewise-rectified-flow.github.io) for more results, including the comparison to LCM and applying PeRFlow to different SD pipelines (e.g., ControlNet, IP-Adaptor, Prompt2Prompt, and much more).
+### Efficient multiview generation via PeRFlow-Wonder3D
+*One*-step multiview generation via PeRFlow accelerated Wonder3D. Normal maps and color images are shown here. The prompts used are "a dog with glasses and cap", "a bird", and "a vintage car".
+<p align="middle">
+  <img src='assets/gallery/multiview/dog_normal.png' width='480'>
+  <img src='assets/gallery/multiview/dog_rgb.png' width='480'>
+  <img src='assets/gallery/multiview/bird_normal.png' width='480'>
+  <img src='assets/gallery/multiview/bird_rgb.png' width='480'>
+  <img src='assets/gallery/multiview/car_normal.png' width='480'>
+  <img src='assets/gallery/multiview/car_rgb.png' width='480'>
+</p>
+
+<!-- A real-time video demo: -->
+<!-- <p align="middle">
+  <video width="512" height="auto" controls>
+    <source src="[assets/gallery/multiview/perflow_wonder3d.mp4](https://github.com/HanshuYAN/perflow-dev/assets/29773276/716b004c-8919-470d-8299-1a59bd232914)" type="video/mp4">
+  </video>
+</p> -->
+
+
+### Accelerate other SD pipelines via PeRFlow
+Plug PeRFlow ${\Delta}W$ into [controlnets](https://huggingface.co/lllyasviel) of SD-v1.5. 
+<p align="middle">
+  <img src='assets/gallery/perflow_controlnet.png' width='784'>
+</p>
+
+[IP-adaptor](https://github.com/tencent-ailab/IP-Adapter) is also supported.
+<p align="middle">
+  <img src='assets/gallery/perflow_ip.png' width='784'>
+</p>
+
+[Prompt-to-Prompt](https://github.com/google/prompt-to-prompt) editing
+<p align="middle">
+  <img src='assets/gallery/perflow_p2p.png' width='784'>
+</p>
+
+
+
+*Please refer to the [project page](https://piecewise-rectified-flow.github.io) for more results, including the comparison to LCM.*
 
 
 
 ## Demo Code
 
-PeRFlow acceleration yields the delta_weights $\Delta W$ corresponding to the pretrained SD-v1.5 model. The complete weights of UNet for inference are computed by $W = W_{\text{SD}} + \Delta W$, where $W_{\text{SD}}$ can be the vanilla SD-v1.5 model or its finetuned stylized versions. We provide the delta_weights for SD-v1.5 at [PeRFlow🤗](https://huggingface.co/hansyan). You can download the delta-weights and fuse them into your own SD pipelines. 
+PeRFlow acceleration yields the delta_weights ${\Delta}W$ corresponding to the pretrained SD-v1.5 model. The complete weights of UNet for inference are computed by $W = W_{\text{SD}} + {\Delta}W$, where $W_{\text{SD}}$ can be the vanilla SD-v1.5 model or its finetuned stylized versions. We provide the delta_weights for SD-v1.5 at [PeRFlow🤗](https://huggingface.co/hansyan). You can download the delta-weights and fuse them into your own SD pipelines. 
 
 ```python
 import torch, torchvision
@@ -128,7 +167,7 @@ This divide-and-conquer strategy successfully avoids the cumbersome simulation o
 
 As shown in the figure, the pre-trained probability flow (which can be transformed from a pre-trained diffusion model) maps random noise distribution $\pi_0$, to the data distribution $\pi_1$. 
 It requires many steps to sample from the curved flow with ODE solvers.
-Instead, PeRFlow divides the sampling trajecotries into multiple segments (two as an example here), and straightens each segment with the reflow operation. 
+Instead, PeRFlow divides the sampling trajectories into multiple segments (two as an example here), and straightens each segment with the reflow operation. 
 A well-trained PeRFlow can generate high-quality images in very few steps because of its piecewise linear nature. 
 
 **Quantitative Results:**    We train a PeRFlow model on LAION-aesthetic-v2 data to accelerate SD-v1.5. We compare the FID with respect to three datasets, including: (1) a subset of 30K images from LAION,  (2) a set of 30K images generated from SD-v1.5 with the [JourneyDB](https://huggingface.co/datasets/JourneyDB/JourneyDB) prompts, (3) the validation set of MS-COCO2014. For all these datasets, we generate 30K images with different models using the corresponding text prompts. The results are presented in the following table. PeRFlow has lower FIDs in all the three comparisons according to the numerical results.
@@ -172,24 +211,7 @@ A well-trained PeRFlow can generate high-quality images in very few steps becaus
 </div>
 
 <br>
-<!-- <p style="width: 70%; text-align: left;"> -->
-<!-- </p> -->
 
-
-
-<!-- ## Related Materials
-
-We provide several related links and readings here:
-
-* The official Rectified Flow github repo (https://github.com/gnobitab/RectifiedFlow)
-
-* An introduction of Rectified Flow (https://www.cs.utexas.edu/~lqiang/rectflow/html/intro.html)
-
-* An introduction of Rectified Flow in Chinese--Zhihu (https://zhuanlan.zhihu.com/p/603740431)
-
-* FlowGrad: Controlling the Output of Generative ODEs With Gradients (https://github.com/gnobitab/FlowGrad)
-
-* Fast Point Cloud Generation with Straight Flows (https://github.com/klightz/PSF) -->
 
 ## Citation
 
@@ -211,9 +233,9 @@ We provide several related links here:
 
 * The official InstaFlow github repo (https://github.com/gnobitab/InstaFlow)
 
-## Ackonwlegements
+## Acknowledgements
 
-Our training and evaluation scripts are implemented based on the [Diffusers and Accelerate](https://github.com/huggingface/) libraries. We use several high-quality finetuned versions of [Stable Diffusion](https://huggingface.co/runwayml/stable-diffusion-v1-5) for model evaluatoin, including [DreamShaper](https://civitai.com/user/Lykon), [RealisticVision](https://civitai.com/user/SG_161222/models), [LandscapeRealistic](https://civitai.com/user/Celsia/models), [ArchitectureExterior](https://civitai.com/user/Hoang_StablediffusionLife/models), [DisneyCartoon](https://civitai.com/user/PromptSharingSamaritan/models).
+Our training and evaluation scripts are implemented based on the [Diffusers and Accelerate](https://github.com/huggingface/) libraries. We use several high-quality finetuned versions of [Stable Diffusion](https://huggingface.co/runwayml/stable-diffusion-v1-5) for model evaluation, including [DreamShaper](https://civitai.com/user/Lykon), [RealisticVision](https://civitai.com/user/SG_161222/models), [LandscapeRealistic](https://civitai.com/user/Celsia/models), [ArchitectureExterior](https://civitai.com/user/Hoang_StablediffusionLife/models), [DisneyCartoon](https://civitai.com/user/PromptSharingSamaritan/models).
 
 Xingchao Liu wishes to express his genuine gratitude to Nat Friedman and the Andromeda cluster for providing free GPU grants during this research.
 

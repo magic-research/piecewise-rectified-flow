@@ -25,26 +25,39 @@ from diffusers.utils import BaseOutput
 from diffusers.utils.torch_utils import randn_tensor
 from diffusers.schedulers.scheduling_utils import KarrasDiffusionSchedulers, SchedulerMixin
 
+
 class Time_Windows():
     def __init__(self, t_initial=1, t_terminal=0, num_windows=4, precision=1./1000) -> None:
-        self.t_initial = t_initial
-        self.t_terminal = t_terminal
-        self.num_windows = num_windows
-        self.len_window = (t_terminal - t_initial) / num_windows
+        assert t_terminal < t_initial
+        time_windows = [ 1.*i/num_windows for i in range(1, num_windows+1)][::-1]
+        
+        self.window_starts = time_windows                      # [1.0, 0.75, 0.5, 0.25]
+        self.window_ends = time_windows[1:] + [t_terminal]     # [0.75, 0.5, 0.25, 0]
         self.precision = precision
     
-    def lookup_window(self, timesteps):
-        assert self.t_terminal < self.t_initial
-        ratio = (timesteps - self.t_initial)/(self.t_terminal-self.t_initial)
-        assert torch.all( torch.ge( ratio, torch.zeros_like(ratio) ) )
-        assert torch.all( torch.gt( torch.ones_like(ratio), ratio ) )
-        
-        t_start = self.t_initial + torch.floor(
-            (timesteps - 0.1*self.precision - self.t_initial) / self.len_window
-        ) * self.len_window
-        t_end = t_start + self.len_window
-        t_end = torch.clamp(t_end, min=self.t_terminal)
+    def get_window(self, tp):
+        idx = 0
+        # robust to numerical error; e.g, (0.6+1/10000) belongs to [0.6, 0.3)
+        while (tp-0.1*self.precision) <= self.window_ends[idx]: 
+            idx += 1
+        return self.window_starts[idx], self.window_ends[idx]
+    
+    def lookup_window(self, timepoint):
+        if timepoint.dim() == 0:
+            t_start, t_end = self.get_window(timepoint)
+            t_start = torch.ones_like(timepoint) * t_start
+            t_end = torch.ones_like(timepoint) * t_end
+        else:
+            t_start = torch.zeros_like(timepoint)
+            t_end = torch.zeros_like(timepoint)
+            bsz = timepoint.shape[0]
+            for i in range(bsz):
+                tp = timepoint[i]
+                ts, te = self.get_window(tp)
+                t_start[i] = ts
+                t_end[i] = te
         return t_start, t_end
+    
     
 
 @dataclass
@@ -155,7 +168,7 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         t_noise: float = 1,
         t_clean: float = 0,
         num_time_windows = 4,
-    ):      
+    ):
         if trained_betas is not None:
             self.betas = torch.tensor(trained_betas, dtype=torch.float32)
         elif beta_schedule == "linear":
@@ -181,8 +194,9 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         # # standard deviation of the initial noise distribution
         self.init_noise_sigma = 1.0
 
-        self.time_windows = Time_Windows(t_initial=t_noise, t_terminal=t_clean, num_windows=num_time_windows, precision=1./num_train_timesteps)
-        print(f"### We recommend a num_inference_steps as a multiple of num_time_windows. It will be automatically rounded. We will support a non-multiple number soon.")
+        self.time_windows = Time_Windows(t_initial=t_noise, t_terminal=t_clean, 
+                                        num_windows=num_time_windows,
+                                        precision=1./num_train_timesteps)
 
     def scale_model_input(self, sample: torch.FloatTensor, timestep: Optional[int] = None) -> torch.FloatTensor:
         """
@@ -212,16 +226,25 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         """
         if num_inference_steps < self.config.num_time_windows:
             num_inference_steps = self.config.num_time_windows
-        else:
-            num_inference_steps = round(num_inference_steps/self.config.num_time_windows) * self.config.num_time_windows
-            ##TODO:support a non-multiple number soon.
-            # print(f"### We suggest to num_inference_steps to be a multiple of num_time_windows. The num_inference_steps is rounded as {num_inference_steps}. We will support a non-multiple number soon.")
-        
-        self.num_inference_steps = num_inference_steps
-        self.dt = (self.config.t_clean - self.config.t_noise) / self.num_inference_steps # (0-1) / 1000 
-        timesteps = (np.arange(0, num_inference_steps) + 1)[::-1] / num_inference_steps * self.config.num_train_timesteps
-        timesteps = timesteps.astype(np.int64)
-        self.timesteps = torch.from_numpy(np.array(timesteps)).to(device)
+            print(f"### We recommend a num_inference_steps not less than num_time_windows. It's set as {self.config.num_time_windows}.")
+
+        timesteps = []
+        for i in range(self.config.num_time_windows):
+            if i < num_inference_steps%self.config.num_time_windows:
+                num_steps_cur_win = num_inference_steps//self.config.num_time_windows+1
+            else:
+                num_steps_cur_win = num_inference_steps//self.config.num_time_windows
+
+            t_s = self.time_windows.window_starts[i]
+            t_e = self.time_windows.window_ends[i]
+            timesteps_cur_win = np.linspace(t_s, t_e, num=num_steps_cur_win, endpoint=False)
+            timesteps.append(timesteps_cur_win)
+                        
+        timesteps = np.concatenate(timesteps)
+
+        self.timesteps = torch.from_numpy(
+            (timesteps*self.config.num_train_timesteps).astype(np.int64)
+        ).to(device)
             
     def get_window_alpha(self, timestep):
         time_windows = self.time_windows
@@ -279,7 +302,13 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
                 f"prediction_type given as {self.config.prediction_type} must be one of `epsilon` or `velocity`."
             )
 
-        prev_sample = sample + self.dt * pred_velocity
+        # get dt
+        idx = torch.argwhere(torch.where(self.timesteps==timestep, 1,0))
+        prev_step = self.timesteps[idx+1] if (idx+1)<len(self.timesteps) else 0
+        dt = (prev_step - timestep) / self.config.num_train_timesteps
+        dt = dt.to(sample.device, sample.dtype)
+           
+        prev_sample = sample + dt * pred_velocity
 
         if not return_dict:
             return (prev_sample,)
