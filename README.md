@@ -13,7 +13,7 @@
 &nbsp;|&nbsp;
 [🤗 Models](https://huggingface.co/hansyan) 
 <!-- [[(🔥New) Code and Pre-trained Models](https://github.com/gnobitab/)] -->
-
+Contributions are welcomed!
 </div>
 
 ## 🔥 News 
@@ -26,7 +26,7 @@
 ## Introduction
 
 Rectified Flow is a promising way for accelerating pre-trained diffusion models. However, the generation quality of prior fast flow-based models on Stable Diffusion (such as [InstaFlow](https://github.com/gnobitab/InstaFlow)) is unsatisfactory. 
-In this work, we adopt several improvements to the original reflow pipeline to significantly boost the performance of flow-based fast SD.
+In this work, we did several improvements to the original reflow pipeline to significantly boost the performance of flow-based fast SD.
 Our new model learns a piecewise linear probability flow which can efficiently generate **high-quality** images in just **4 steps**, termed **piecewise rectified flow (PeRFlow)**.
 Moreover, we found the difference of model weights, ${\Delta}W = W_{\text{PeRFlow}} - W_{\text{SD}}$, can be used as a plug-and-play accelerator module on a wide-range of SD-based models.
 
