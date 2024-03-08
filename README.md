@@ -17,6 +17,7 @@ Contributions are welcomed!
 </div>
 
 ## 🔥 News 
+- 2024/03/08 Text-to-3D via combining PeRFlow-T2I with [TripoSR](https://huggingface.co/stabilityai/TripoSR/tree/main). Try the online [Gradio demo 🤗](https://huggingface.co/spaces/hansyan/perflow-triposr) here.
 - 2024/03/05 PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
 - 2024/03/05 Training scripts are released. Run with ```bash scripts/train.sh```
 - 2024/02/29 We released the PeRFlow accelerated version of Stable Diffusion v2.1.
