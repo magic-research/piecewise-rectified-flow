@@ -11,12 +11,13 @@
 
 [🔰 Project Page](https://piecewise-rectified-flow.github.io)
 &nbsp;|&nbsp;
-[🤗 Models](https://huggingface.co/hansyan)&nbsp;|&nbsp;[![Replicate](https://replicate.com/cjwbw/repflow-t2i/badge)](https://replicate.com/cjwbw/repflow-t2i) 
-<!-- [[(🔥New) Code and Pre-trained Models](https://github.com/gnobitab/)] -->
+[🤗 Models](https://huggingface.co/hansyan)
+
 Contributions are welcomed!
 </div>
 
 ## 🔥 News 
+- 2024/03/11 A demo of PeRFlow-T2I (including refiner) is availble at [Replicate Space](https://replicate.com/cjwbw/repflow-t2i). We thank individual contributor [Chenxi](https://github.com/chenxwh).
 - 2024/03/08 Text-to-3D via combining PeRFlow-T2I with [TripoSR](https://huggingface.co/stabilityai/TripoSR/tree/main). Try the online [Gradio demo 🤗](https://huggingface.co/spaces/hansyan/perflow-triposr) here.
 - 2024/03/05 PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
 - 2024/03/05 Training scripts are released. Run with ```bash scripts/train.sh```
@@ -156,7 +157,7 @@ for i, prompt in enumerate(prompts_list):
 
 We provide complete python scripts and the running dependencies in ```scripts``` and ```env```. Scripts for text-to-image and controlnet (depth/edge/pose/tile) are included. You can try efficient image enhancement via controlnet-tile models. We will release other accelerated models and training details in future.
 
-We provide fast text-to-multiview gradio interface in ```./Wonder3D``` based on [Wonder3D](https://github.com/xxlong0/Wonder3D).
+We provide fast text-to-multiview gradio interface in ```app/Wonder3D``` based on [Wonder3D](https://github.com/xxlong0/Wonder3D).
 Install ```diffusers 0.19.3``` with ```pip install diffusers==0.19.3``` before running.
 Run by 
 
