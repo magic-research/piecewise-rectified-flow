@@ -11,7 +11,7 @@
 
 [🔰 Project Page](https://piecewise-rectified-flow.github.io)
 &nbsp;|&nbsp;
-[🤗 Models](https://huggingface.co/hansyan) 
+[🤗 Models](https://huggingface.co/hansyan)&nbsp;|&nbsp;[![Replicate](https://replicate.com/cjwbw/repflow-t2i/badge)](https://replicate.com/cjwbw/repflow-t2i) 
 <!-- [[(🔥New) Code and Pre-trained Models](https://github.com/gnobitab/)] -->
 Contributions are welcomed!
 </div>
