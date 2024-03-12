@@ -185,17 +185,13 @@ Instead, PeRFlow divides the sampling trajectories into multiple segments (two a
 A well-trained PeRFlow can generate high-quality images in very few steps because of its piecewise linear nature. 
 
 **Algorithms:**
-PeRFlow supports two common scenarios: given a pretrained model $\phi$ and a dataset $\mathcal{D}$ used for acclerating, 1) the domain of $\mathcal{D}$ aligns with the data domain used for training $\phi$, and 2) there is a gap between the domain of $\mathcal{D}$ and that of $\phi$. 
-For the first case, we can use the pretrained model $\phi$ as teacher and solve the low-noise-level state $z_{t_{k-1}}$ from $z_{t_k}$ via the corresponding probaility-flow ODE solver $\Phi(\cdot, \phi)$. The procedure is summarized in ```Algorithm 1:``` PeRFlow Distillation.
-For the second case, we can direclty use a linear flow to fit the transform from maginal distribution $Z_{t_{k}}$ to marginal $Z_{t_{k-1}}$. This is summarized in ```Algorithm 2:``` PeRFlow Finetuning.
-
-
+PeRFlow supports two common scenarios: given a pretrained model $\phi$ and a dataset $\mathcal{D}$ used for accelerating, 1) the domain of $\mathcal{D}$ aligns with the data domain used for training $\phi$, and 2) there is a gap between the domain of $\mathcal{D}$ and that of $\phi$. For the first case, we can use the pretrained model $\phi$ as a teacher and solve the low-noise-level state $z_{t_{k-1}}$ from $z_{t_k}$ via the corresponding probability-flow ODE solver $\Phi(\cdot, \phi)$. The procedure is summarized in ```PeRFlow Distillation```. For the second case, if we still use $\phi$ as the teacher, the sampling trajectories will be guided towards $\phi$'s domain rather than the data distribution. Instead, we can directly use a linear flow to fit the transform from marginal distribution $Z_{t_{k}}$ to marginal $Z_{t_{k-1}}$, which is summarized in ```PeRFlow Finetuning```.
 <p align="middle">
-  <img src='assets/algs.png' width=640'>
+  <img src='assets/algs.png' width=800'>
 </p>
 
 
-**Quantitative Results:**    We train a PeRFlow model on LAION-aesthetic-v2 data to accelerate SD-v1.5. We compare the FID with respect to three datasets, including: (1) a subset of 30K images from LAION,  (2) a set of 30K images generated from SD-v1.5 with the [JourneyDB](https://huggingface.co/datasets/JourneyDB/JourneyDB) prompts, (3) the validation set of MS-COCO2014. For all these datasets, we generate 30K images with different models using the corresponding text prompts. The results are presented in the following table. PeRFlow has lower FIDs in all the three comparisons according to the numerical results.
+**Quantitative Results:** We train a PeRFlow model on LAION-aesthetic-v2 data to accelerate SD-v1.5. We compare the FID with respect to three datasets, including: (1) a subset of 30K images from LAION,  (2) a set of 30K images generated from SD-v1.5 with the [JourneyDB](https://huggingface.co/datasets/JourneyDB/JourneyDB) prompts, (3) the validation set of MS-COCO2014. For all these datasets, we generate 30K images with different models using the corresponding text prompts. The results are presented in the following table. PeRFlow has lower FIDs in all the three comparisons according to the numerical results.
 
 <div align="center" style="font-size:12px;">
   <table>
