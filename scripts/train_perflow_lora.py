@@ -539,10 +539,10 @@ if __name__ == "__main__":
         parser.add_argument("--cfg_sync", action="store_true", default=False,)
         parser.add_argument("--discrete_timesteps", type=int, default=-1,)
         ## lr
-        parser.add_argument("--learning_rate", type=float, default=5e-5,)
+        parser.add_argument("--learning_rate", type=float, default=1e-4,)
         parser.add_argument("--scale_lr", action="store_true", default=False, help="Scale the learning rate by the number of GPUs, gradient accumulation steps, and batch size.",)
         parser.add_argument("--lr_scheduler", type=str, default="constant",)
-        parser.add_argument("--lr_warmup_steps", type=int, default=500, help="Number of steps for the warmup in the lr scheduler.")
+        parser.add_argument("--lr_warmup_steps", type=int, default=1000, help="Number of steps for the warmup in the lr scheduler.")
         ## optimization
         parser.add_argument("--adam_beta1", type=float, default=0.9, help="The beta1 parameter for the Adam optimizer.")
         parser.add_argument("--adam_beta2", type=float, default=0.999, help="The beta2 parameter for the Adam optimizer.")
