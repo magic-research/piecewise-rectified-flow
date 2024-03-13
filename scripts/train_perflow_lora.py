@@ -94,7 +94,7 @@ def main(args):
     teacher_num_train_timesteps = teacher_scheduler.config.num_train_timesteps
 
     from src.pfode_solver import PFODESolver
-    solver = PFODESolver(scheduler=teacher_scheduler, t_initial=1, t_terminal=0,) #!!!:
+    solver = PFODESolver(scheduler=teacher_scheduler, t_initial=1, t_terminal=0,)
     
     ## 1.2 Prepare student unet
     unet = UNet2DConditionModel.from_pretrained(args.pretrained_model_name_or_path, subfolder="unet",)
@@ -155,14 +155,7 @@ def main(args):
     
     ## 2. Prepare dataset    
     logger.info("***** preparing datasets *****")
-    if ("/mnt/bn/ic-research-agic-editing2/data/laion5b_aesv2_512plus_10M" in args.data_root):
-        from src.laion_bytenas import make_train_dataset
-    elif "/mnt/bn/" in args.data_root:
-        from src.laion_local import make_train_dataset
-    elif "hdfs://" in args.data_root:
-        from src.laion_hdfs import make_train_dataset
-    else:
-        raise NotImplementedError
+    make_train_dataset = None  #FIXME: fix this
     
     if args.debug:
         world_size = 64
@@ -449,7 +442,7 @@ def main(args):
                     elif args.loss_type == "noise_matching":
                         _, _, _, _, gamma_s_e = perflow_scheduler.get_window_alpha(timepoints.float().cpu() * teacher_num_train_timesteps)
                         gamma_s_e = gamma_s_e[:,None,None,None].to(device=latents.device)
-                        targets = (latents_start - gamma_s_e * latents_end ) / ( ( 1- gamma_s_e**2)**0.5 ) #FIXME:check numerical stability
+                        targets = (latents_start - gamma_s_e * latents_end ) / ( ( 1- gamma_s_e**2)**0.5 )
                     else:
                         raise NotImplementedError
                     
