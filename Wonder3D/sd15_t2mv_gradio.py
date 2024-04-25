@@ -51,7 +51,7 @@ pipe_t2i = StableDiffusionPipeline.from_pretrained("Lykon/dreamshaper-8", torch_
 delta_weights = UNet2DConditionModel.from_pretrained("hansyan/perflow-sd15-delta-weights", torch_dtype=torch.float16, variant="v0-1",).state_dict()
 
 pipe_t2i = merge_delta_weights_into_unet(pipe_t2i, delta_weights)
-pipe_t2i.scheduler = PeRFlowScheduler.from_config(pipe_t2i.scheduler.config, prediction_type="epsilon", num_time_windows=4)
+pipe_t2i.scheduler = PeRFlowScheduler.from_config(pipe_t2i.scheduler.config, prediction_type="diff_eps", num_time_windows=4)
 pipe_t2i.to('cuda:0', torch.float16)
 
 pipe_3d = merge_delta_weights_into_unet(pipe_3d, delta_weights)

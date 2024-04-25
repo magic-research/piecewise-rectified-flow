@@ -14,6 +14,15 @@ def setup_seed(seed):
 Path("demo").mkdir(parents=True, exist_ok=True) 
 
 
+pipe = StableDiffusionPipeline.from_pretrained("hansyan/perflow-sd21-artius", torch_dtype=torch.float16,)
+from src.scheduler_perflow import PeRFlowScheduler
+pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="velocity", num_time_windows=4,)
+pipe.to("cuda", torch.float16)
+
+num_inference_steps = 8
+cfg_scale_list = [7.5]
+num_img = 2
+seed = 42
 prompts_list = [
     ["RAW photo, 8k uhd, dslr, high quality, film grain; A man with brown skin and a beard, looking at the viewer with dark eyes, in front of lake",  "distorted, blur, smooth, low-quality, warm, haze, over-saturated, high-contrast, dark",],
     ["RAW photo, 8k uhd, dslr, high quality, film grain; A closeup face photo of girl, wearing a rain coat, in the street, heavy rain, bokeh",  "distorted, blur, smooth, low-quality, warm, haze, over-saturated, high-contrast, dark",],
@@ -26,22 +35,13 @@ prompts_list = [
 ]
 
 
-pipe = StableDiffusionPipeline.from_pretrained("hansyan/perflow-sd21-artius", torch_dtype=torch.float16,)
-from src.scheduler_perflow import PeRFlowScheduler
-pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="velocity", num_time_windows=4,)
-pipe.to("cuda", torch.float16)
-
-
-num_inference_steps = 8
-cfg_scale_list = [7.5]
-
 for cfg_scale in cfg_scale_list:
     for i, prompts in enumerate(prompts_list):
-        setup_seed(42)
+        setup_seed(seed)
         prompt, neg_prompt = prompts[0], prompts[1]
         samples = pipe(
-            prompt              = [prompt] * 8, 
-            negative_prompt     = [neg_prompt] * 8,
+            prompt              = [prompt] * num_img, 
+            negative_prompt     = [neg_prompt] * num_img,
             height              = 768,
             width               = 768,
             num_inference_steps = num_inference_steps, 
@@ -49,5 +49,5 @@ for cfg_scale in cfg_scale_list:
             output_type         = 'pt',
         ).images
         cfg_int = int(cfg_scale); cfg_float = int(cfg_scale*10 - cfg_int*10)
-        save_name = f'txt{i+1}_step{num_inference_steps}_cfg{cfg_int}-{cfg_float}.png'
-        torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow = 4), os.path.join("demo", save_name))
+        save_name = f'step_{num_inference_steps}_txt{i+1}_cfg{cfg_int}-{cfg_float}.png'
+        torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow = num_img), os.path.join("demo", save_name))

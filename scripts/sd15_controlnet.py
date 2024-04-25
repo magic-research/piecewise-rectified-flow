@@ -5,16 +5,56 @@ from PIL import Image
 import torch, torchvision
 from diffusers import UNet2DConditionModel, ControlNetModel, StableDiffusionControlNetPipeline, StableDiffusionControlNetImg2ImgPipeline
 from diffusers.utils import make_image_grid, load_image
+from controlnet_aux import CannyDetector, OpenposeDetector, MidasDetector, HEDdetector
+from controlnet_aux.util import resize_image
 
-from src.utils_perflow import merge_delta_weights_into_unet
-from src.scheduler_perflow import PeRFlowScheduler
+class Preprocessor:
+    def __init__(self, control_type=None, path="lllyasviel/Annotators"):
+        self.control_type = control_type
+        if control_type == "canny":
+            self.preprocessor = CannyDetector()
+        elif control_type == "openpose":
+            self.preprocessor = OpenposeDetector.from_pretrained(path)
+        elif control_type == "midas":
+            self.preprocessor = MidasDetector.from_pretrained(path)
+        elif control_type == "hed":
+            self.preprocessor = HEDdetector.from_pretrained(path)
+        elif control_type == "tile":
+            self.preprocessor = None
+        else:
+            raise NotImplementedError
 
+    def __call__(self, x, params={"t1": 50, "t2": 100, "include_hand": True, "include_face": True}, image_resolution=512):
+        if self.control_type == "canny":
+            return self.preprocessor(x, 
+                params["t1"], 
+                params["t2"], 
+                image_resolution=image_resolution, 
+                output_type="np")
+
+        elif self.control_type == "openpose":
+            return self.preprocessor(x, 
+                include_hand=params["include_hand"], 
+                include_face=params["include_face"], 
+                image_resolution=image_resolution, 
+                output_type="np")
+
+        elif self.control_type == "tile":
+            return resize_image(x, resolution=image_resolution)
+
+        else:
+            return self.preprocessor(x, 
+                image_resolution=image_resolution, 
+                output_type="np")
+        
+        
 def setup_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
+        
     
 PROMPT_LIST_DEPTH = [["assets/others/control/depth/husky.jpg", ["A husky dog, lying on his stomach in the snow, looking away, blue sky","A cute cat, lying on the ground, raining outside"]],]
 PROMPT_LIST_TILE = [
@@ -22,12 +62,12 @@ PROMPT_LIST_TILE = [
     ["assets/others/control/fruits.png", ["a plate of fruits",]],
 ]
 
+
 def main(args):
-    save_dir = os.path.join(args.save_dir + f"_{args.num_inference_steps}")
-    Path(os.path.join(save_dir, "images")).mkdir(parents=True, exist_ok=True)
+    save_dir = os.path.join(args.save_dir, args.control_type)
+    Path(save_dir).mkdir(parents=True, exist_ok=True)
 
     ## controlnet pipeline
-    from scripts.controlnet_preprocessor import Preprocessor
     controlnet_preprocessor = Preprocessor(control_type=args.control_type, path="lllyasviel/Annotators")
     if args.control_type == "openpose":
         controlnet_model_path = "lllyasviel/control_v11p_sd15_openpose"
@@ -35,8 +75,6 @@ def main(args):
     elif args.control_type == "midas":
         controlnet_model_path = "lllyasviel/control_v11f1p_sd15_depth"
         controlnet_preprocessor.preprocessor.to(device='cuda')
-    elif args.control_type == "canny":
-        controlnet_model_path = "lllyasviel/control_v11p_sd15_canny"
     elif args.control_type == 'tile':
         controlnet_model_path = "lllyasviel/control_v11f1e_sd15_tile"
     else:
@@ -47,11 +85,14 @@ def main(args):
         pipe = StableDiffusionControlNetImg2ImgPipeline.from_pretrained(args.sd_base, controlnet=controlnet, torch_dtype=torch.float16,)
     else:
         pipe = StableDiffusionControlNetPipeline.from_pretrained(args.sd_base, controlnet = controlnet, torch_dtype=torch.float16,)
-        
+    
+    
+    ## load perflow acceleration
+    from src.utils_perflow import merge_delta_weights_into_unet
+    from src.scheduler_perflow import PeRFlowScheduler
     delta_weights = UNet2DConditionModel.from_pretrained("hansyan/perflow-sd15-delta-weights", torch_dtype=torch.float16, variant="v0-1",).state_dict()
     pipe = merge_delta_weights_into_unet(pipe, delta_weights)
-    pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="epsilon", num_time_windows=4,)
-    
+    pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="diff_eps", num_time_windows=4,)
     pipe.to("cuda", torch.float16)
 
 
@@ -111,11 +152,8 @@ def main(args):
                 ).images
             
             cfg_int = int(cfg_scale); cfg_float = int(cfg_scale*10 - cfg_int*10)
-            save_name = f'ctrl{i+1}_cfg{cfg_int}-{cfg_float}.png'
-            torchvision.utils.save_image(
-                torchvision.utils.make_grid(samples, nrow = 4), 
-                os.path.join(save_dir, save_name)
-            )
+            save_name = f'step_{args.num_inference_steps}_txt{i+1}_cfg{cfg_int}-{cfg_float}.png'
+            torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow = 4), os.path.join(save_dir, save_name))
             ctrl.save(os.path.join(save_dir, f'ctrl{i+1}.png'))
 
 
