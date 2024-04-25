@@ -58,10 +58,8 @@ class Time_Windows():
                 t_end[i] = te
         return t_start, t_end
     
-    
 
 @dataclass
-# Copied from diffusers.schedulers.scheduling_ddpm.DDPMSchedulerOutput with DDPM->DDIM
 class PeRFlowSchedulerOutput(BaseOutput):
     """
     Output class for the scheduler's `step` function output.
@@ -164,7 +162,7 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         beta_schedule: str = "scaled_linear",
         trained_betas: Optional[Union[np.ndarray, List[float]]] = None,
         set_alpha_to_one: bool = False,
-        prediction_type: str = "epsilon",
+        prediction_type: str = "ddim_eps",
         t_noise: float = 1,
         t_clean: float = 0,
         num_time_windows = 4,
@@ -195,8 +193,11 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         self.init_noise_sigma = 1.0
 
         self.time_windows = Time_Windows(t_initial=t_noise, t_terminal=t_clean, 
-                                        num_windows=num_time_windows,
-                                        precision=1./num_train_timesteps)
+                                         num_windows=num_time_windows, 
+                                         precision=1./num_train_timesteps)
+        
+        assert prediction_type in ["ddim_eps", "diff_eps", "velocity"]
+
 
     def scale_model_input(self, sample: torch.FloatTensor, timestep: Optional[int] = None) -> torch.FloatTensor:
         """
@@ -246,20 +247,24 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
             (timesteps*self.config.num_train_timesteps).astype(np.int64)
         ).to(device)
             
-    def get_window_alpha(self, timestep):
+    def get_window_alpha(self, timepoints):
         time_windows = self.time_windows
         num_train_timesteps = self.config.num_train_timesteps
         
-        t_win_start, t_win_end = time_windows.lookup_window(timestep / num_train_timesteps)
+        t_win_start, t_win_end = time_windows.lookup_window(timepoints)
         t_win_len = t_win_end - t_win_start
-        t_interval = timestep / num_train_timesteps - t_win_start # NOTE: negative value
+        t_interval = timepoints - t_win_start # NOTE: negative value
 
         idx_start = (t_win_start*num_train_timesteps - 1 ).long()
-        idx_end = torch.clamp( (t_win_end*num_train_timesteps - 1 ).long(), min=0)
-        alpha_cumprod_s_e = self.alphas_cumprod[idx_start] / self.alphas_cumprod[idx_end]        
+        alphas_cumprod_start = self.alphas_cumprod[idx_start]
+        
+        idx_end = torch.clamp( (t_win_end*num_train_timesteps - 1 ).long(), min=0)  #FIXME:
+        alphas_cumprod_end = self.alphas_cumprod[idx_end]
+
+        alpha_cumprod_s_e = alphas_cumprod_start / alphas_cumprod_end      
         gamma_s_e = alpha_cumprod_s_e ** 0.5
         
-        return t_win_start, t_win_end, t_win_len, t_interval, gamma_s_e
+        return t_win_start, t_win_end, t_win_len, t_interval, gamma_s_e, alphas_cumprod_start, alphas_cumprod_end 
         
     def step(
         self,
@@ -288,12 +293,41 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
                 tuple is returned where the first element is the sample tensor.
         """
 
-        if self.config.prediction_type == "epsilon":
+        if self.config.prediction_type == "ddim_eps":
             pred_epsilon = model_output
-            t_win_start, t_win_end, t_win_len, t_interval, gamma_s_e = self.get_window_alpha(timestep)
-            pred_sample_end = ( sample - (1-t_interval/t_win_len) * ((1-gamma_s_e**2)**0.5) * pred_epsilon ) \
-                / ( gamma_s_e + t_interval / t_win_len * (1-gamma_s_e) )
-            pred_velocity = (pred_sample_end - sample) / (t_win_end - (t_win_start + t_interval))
+            t_c = timestep / self.config.num_train_timesteps
+            t_s, t_e, _, c_to_s, _, alphas_cumprod_start, alphas_cumprod_end = self.get_window_alpha(t_c)
+            
+            lambda_s = (alphas_cumprod_end / alphas_cumprod_start)**0.5
+            eta_s = (1-alphas_cumprod_end)**0.5 - ( alphas_cumprod_end / alphas_cumprod_start * (1-alphas_cumprod_start) )**0.5
+            
+            lambda_t =  ( lambda_s * (t_e - t_s) ) / ( lambda_s *(t_c - t_s) + (t_e - t_c) )
+            eta_t = ( eta_s * (t_e - t_c) ) / ( lambda_s *(t_c - t_s) + (t_e - t_c) )
+            
+            pred_win_end = lambda_t * sample + eta_t * pred_epsilon
+            pred_velocity = (pred_win_end - sample) / (t_e - (t_s + c_to_s))
+            
+        # elif self.config.prediction_type == "diff_eps":
+        #     pred_epsilon = model_output
+        #     t_c = timestep / self.config.num_train_timesteps
+        #     t_s, t_e, win_len, c_to_s, gamma_s_e, _, _ = self.get_window_alpha(t_c)
+        #     pred_sample_end = ( sample - (1-c_to_s/win_len) * ((1-gamma_s_e**2)**0.5) * pred_epsilon ) \
+        #         / ( gamma_s_e + c_to_s / win_len * (1-gamma_s_e) )
+        #     pred_velocity = (pred_sample_end - sample) / (t_e - (t_s + c_to_s))
+            
+        elif self.config.prediction_type == "diff_eps":
+            pred_epsilon = model_output
+            t_c = timestep / self.config.num_train_timesteps
+            t_s, t_e, _, c_to_s, gamma_s_e, _, _ = self.get_window_alpha(t_c)
+            
+            lambda_s = 1 / gamma_s_e
+            eta_s = -1 * ( 1- gamma_s_e**2)**0.5 / gamma_s_e
+            
+            lambda_t =  ( lambda_s * (t_e - t_s) ) / ( lambda_s *(t_c - t_s) + (t_e - t_c) )
+            eta_t = ( eta_s * (t_e - t_c) ) / ( lambda_s *(t_c - t_s) + (t_e - t_c) )
+            
+            pred_win_end = lambda_t * sample + eta_t * pred_epsilon
+            pred_velocity = (pred_win_end - sample) / (t_e - (t_s + c_to_s))
 
         elif self.config.prediction_type == "velocity":
             pred_velocity = model_output
@@ -301,13 +335,13 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
             raise ValueError(
                 f"prediction_type given as {self.config.prediction_type} must be one of `epsilon` or `velocity`."
             )
-
+            
         # get dt
         idx = torch.argwhere(torch.where(self.timesteps==timestep, 1,0))
         prev_step = self.timesteps[idx+1] if (idx+1)<len(self.timesteps) else 0
         dt = (prev_step - timestep) / self.config.num_train_timesteps
         dt = dt.to(sample.device, sample.dtype)
-           
+
         prev_sample = sample + dt * pred_velocity
 
         if not return_dict:
