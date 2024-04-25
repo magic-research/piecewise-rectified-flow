@@ -17,7 +17,7 @@ Contributions are welcomed!
 </div>
 
 ## 🔥 News 
-- 2024/04/25 We released the PeRFlow accelerated version of Stable Diffusion XL. Find the model [here 🤗](https://huggingface.co/hansyan/perflow-sdxl-dreamshaper).
+- 2024/04/25 We released the PeRFlow accelerated SDXL. Find the model [here 🤗](https://huggingface.co/hansyan/perflow-sdxl-dreamshaper).
 - 2024/03/11 A demo of PeRFlow-T2I (including refiner) is availble at [Replicate Space](https://replicate.com/cjwbw/repflow-t2i). We thank individual contributor [Chenxi](https://github.com/chenxwh).
 - 2024/03/08 Text-to-3D via combining PeRFlow-T2I with [TripoSR](https://huggingface.co/stabilityai/TripoSR/tree/main). Try the online [Gradio demo 🤗](https://huggingface.co/spaces/hansyan/perflow-triposr) here.
 - 2024/03/05 PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
