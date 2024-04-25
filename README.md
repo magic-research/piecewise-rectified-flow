@@ -17,13 +17,13 @@ Contributions are welcomed!
 </div>
 
 ## 🔥 News 
-- 2024/04/25 We released the PeRFlow accelerated SDXL. Find the model [here 🤗](https://huggingface.co/hansyan/perflow-sdxl-dreamshaper). Training scripts are also included.
-- 2024/03/11 A demo of PeRFlow-T2I (including refiner) is availble at [Replicate Space](https://replicate.com/cjwbw/repflow-t2i). We thank individual contributor [Chenxi](https://github.com/chenxwh).
-- 2024/03/08 Text-to-3D via combining PeRFlow-T2I with [TripoSR](https://huggingface.co/stabilityai/TripoSR/tree/main). Try the online [Gradio demo 🤗](https://huggingface.co/spaces/hansyan/perflow-triposr) here.
-- 2024/03/05 PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
-- 2024/03/05 Training scripts are released. Run with ```bash scripts/train.sh```
-- 2024/02/29 We released the PeRFlow accelerated version of Stable Diffusion v2.1.
-- 2024/02/19 We released the PeRFlow acceleration module for Stable Diffusion v1.5, supporting various SD-v1.5 pipelines. Find inference scripts at ```scripts```.
+- **[2024/04/25]** We released the PeRFlow accelerated SDXL. Find the model [here 🤗](https://huggingface.co/hansyan/perflow-sdxl-dreamshaper). Training scripts are also included.
+- **[2024/03/11]** A demo of PeRFlow-T2I (including refiner) is availble at [Replicate Space](https://replicate.com/cjwbw/repflow-t2i). We thank individual contributor [Chenxi](https://github.com/chenxwh).
+- **[2024/03/08]** Text-to-3D via combining PeRFlow-T2I with [TripoSR](https://huggingface.co/stabilityai/TripoSR/tree/main). Try the online [Gradio demo 🤗](https://huggingface.co/spaces/hansyan/perflow-triposr) here.
+- **[2024/03/05]** PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
+- **[2024/03/05]** Training scripts are released. Run with ```bash scripts/train.sh```
+- **[2024/02/29]** We released the PeRFlow accelerated version of Stable Diffusion v2.1.
+- **[2024/02/19]** We released the PeRFlow acceleration module for Stable Diffusion v1.5, supporting various SD-v1.5 pipelines. Find inference scripts at ```scripts```.
 <!-- [Demos](https://github.com/magic-research/piecewise-rectified-flow/tree/main/scripts) for few-step text-to-image and image-enhancement are provided. -->
 
 ## Introduction
@@ -124,18 +124,47 @@ from src.scheduler_perflow import PeRFlowScheduler
 delta_weights = UNet2DConditionModel.from_pretrained("hansyan/perflow-sd15-delta-weights", torch_dtype=torch.float16, variant="v0-1",).state_dict()
 pipe = StableDiffusionPipeline.from_pretrained("Lykon/dreamshaper-8", torch_dtype=torch.float16,)
 pipe = merge_delta_weights_into_unet(pipe, delta_weights)
-pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="epsilon", num_time_windows=4)
+pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="diff_eps", num_time_windows=4)
 pipe.to("cuda", torch.float16)
 ```
 
-**For easy try**, we also provide the whole accelerated model of several popular base diffusion models (already merged with PeRFlow), including DreamShaper-v8, RealisticVision-v51, and ArchitectureExterior. Load the model, change the scheduler, then enjoy the fast generation.
+**For easy try**, we also provide the whole accelerated model of several popular base diffusion models (already merged with PeRFlow), including SD15- and SDXL-DreamShaper. Load the model, change the scheduler, then enjoy the fast generation.
+```python
+from diffusers import StableDiffusionXLPipeline
+pipe = StableDiffusionXLPipeline.from_pretrained("hansyan/perflow-sdxl-dreamshaper", torch_dtype=torch.float16, use_safetensors=True, variant="v0-fix")
+from src.scheduler_perflow import PeRFlowScheduler
+pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="ddim_eps", num_time_windows=4)
+pipe.to("cuda", torch.float16)
+
+prompts_list = [
+    ["photorealistic, uhd, high resolution, high quality, highly detailed; masterpiece, A closeup face photo of girl, wearing a rain coat, in the street, heavy rain, bokeh,",
+        "distorted, blur, low-quality, haze, out of focus",],
+    ["photorealistic, uhd, high resolution, high quality, highly detailed; masterpiece, A beautiful cat bask in the sun",
+        "distorted, blur, low-quality, haze, out of focus",],
+]
+
+for i, prompts in enumerate(prompts_list):
+    setup_seed(42)
+    prompt, neg_prompt = prompts[0], prompts[1]
+    samples = pipe(
+        prompt              = [prompt] * 2, 
+        negative_prompt     = [neg_prompt] * 2,
+        height              = 1024,
+        width               = 1024,
+        num_inference_steps = 6, 
+        guidance_scale      = 2.0,
+        output_type         = 'pt',
+    ).images
+    torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow = 2), f'tmp_{i}.png')
+
+```
 
 ```python
 import torch, torchvision
 from diffusers.pipelines.stable_diffusion import StableDiffusionPipeline
 from src.scheduler_perflow import PeRFlowScheduler
 pipe = StableDiffusionPipeline.from_pretrained("hansyan/perflow-sd15-dreamshaper", torch_dtype=torch.float16)
-pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="epsilon", num_time_windows=4)
+pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_type="diff_eps", num_time_windows=4)
 pipe.to("cuda", torch.float16)
 
 prompts_list = ["A man with brown skin, a beard, and dark eyes", "A colorful bird standing on the tree, open beak",]
