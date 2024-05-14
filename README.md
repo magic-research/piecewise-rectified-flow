@@ -8,16 +8,15 @@
 [Hanshu Yan](https://hanshuyan.github.io/)<sup>1</sup>, [Xingchao Liu](https://gnobitab.github.io/)<sup>2</sup>, [Jiachun Pan](https://scholar.google.com/citations?hl=en&user=nrOvfb4AAAAJ&view_op=list_works&sortby=pubdate)<sup>3</sup>, [Jun Hao Liew](https://scholar.google.com.sg/citations?user=8gm-CYYAAAAJ&hl=en)<sup>1</sup>, [Qiang Liu](https://www.cs.utexas.edu/~lqiang/)<sup>2</sup>, [Jiashi Feng](https://scholar.google.com/citations?user=Q8iay0gAAAAJ&hl=en&oi=ao)<sup>1</sup>  
 <sup>1</sup>ByteDance &nbsp; <sup>2</sup>UT Austin &nbsp; <sup>3</sup>NUS
 
-
-[🔰 Project Page](https://piecewise-rectified-flow.github.io)
-&nbsp;|&nbsp;
+[📚 Tech Report](https://arxiv.org/abs/2405.07510)&nbsp;|&nbsp;
+[🎨 Project Page](https://piecewise-rectified-flow.github.io)&nbsp;|&nbsp;
 [🤗 Models](https://huggingface.co/hansyan)
 
 Contributions are welcomed!
 </div>
 
 ## 🔥 News 
-- **[2024/04/25]** We released the PeRFlow accelerated SDXL. Find the model [here 🤗](https://huggingface.co/hansyan/perflow-sdxl-dreamshaper). Training scripts are also included.
+- **[2024/04/25]** We released the PeRFlow accelerated SDXL. Find the model here 🤗: [PeRFlow-SDXL-DreamShaper](https://huggingface.co/hansyan/perflow-sdxl-dreamshaper) and [PeRFlow-SDXL-base](https://huggingface.co/hansyan/perflow-sdxl-base). Training scripts are also included at ```./scripts```.
 - **[2024/03/11]** A demo of PeRFlow-T2I (including refiner) is availble at [Replicate Space](https://replicate.com/cjwbw/repflow-t2i). We thank individual contributor [Chenxi](https://github.com/chenxwh).
 - **[2024/03/08]** Text-to-3D via combining PeRFlow-T2I with [TripoSR](https://huggingface.co/stabilityai/TripoSR/tree/main). Try the online [Gradio demo 🤗](https://huggingface.co/spaces/hansyan/perflow-triposr) here.
 - **[2024/03/05]** PeRFlow+Wonder3D gives one-step multiview generation! See [here](#efficient-multiview-generation-via-perflow-wonder3d).
@@ -108,13 +107,10 @@ Editing with PeRFlow+[Prompt-to-Prompt](https://github.com/google/prompt-to-prom
 
 ## Demo Code
 
-Install environments with,
+Install running dependencies with: ```bash env/install.sh```. Training and evaluation scripts are provided in ```scripts```.
 
-```
-bash env/install.sh
-```
 
-PeRFlow acceleration yields the delta_weights ${\Delta}W$ corresponding to the pretrained SD-v1.5 model. The complete weights of UNet for inference are computed by $W = W_{\text{SD}} + {\Delta}W$, where $W_{\text{SD}}$ can be the vanilla SD-v1.5 model or its finetuned stylized versions. We provide the delta_weights for SD-v1.5 at [PeRFlow🤗](https://huggingface.co/hansyan). You can download the delta-weights and fuse them into your own SD pipelines. 
+PeRFlow acceleration yields the delta_weights ${\Delta}W$ corresponding to the pretrained diffusion models. The complete weights of UNet for inference are computed by $W = W_{\text{SD}} + {\Delta}W$, where $W_{\text{SD}}$ are the weights of base models, such as the vanilla or customized (DreamShaper, RealisticVision, etc.) SD models. We provide the delta_weights for SD-v1.5 at [PeRFlow🤗](https://huggingface.co/hansyan). You can download the delta-weights and fuse them into your own SD pipelines. 
 
 ```python
 import torch, torchvision
@@ -128,7 +124,7 @@ pipe.scheduler = PeRFlowScheduler.from_config(pipe.scheduler.config, prediction_
 pipe.to("cuda", torch.float16)
 ```
 
-**For easy try**, we also provide the whole accelerated model of several popular base diffusion models (already merged with PeRFlow), including SD15- and SDXL-DreamShaper. Load the model, change the scheduler, then enjoy the fast generation.
+**For easy try**, we also provide complete accelerated weights (already merged with PeRFlow ${\Delta}W$) of several popular diffusion models , including **SD-v1.5** and **SDXL**. Load the model, change the scheduler, then enjoy the fast generation.
 ```python
 from diffusers import StableDiffusionXLPipeline
 pipe = StableDiffusionXLPipeline.from_pretrained("hansyan/perflow-sdxl-dreamshaper", torch_dtype=torch.float16, use_safetensors=True, variant="v0-fix")
@@ -185,39 +181,27 @@ for i, prompt in enumerate(prompts_list):
     torchvision.utils.save_image(torchvision.utils.make_grid(samples, nrow=4), f"tmp_{i}.png")
 ```
 
-We provide complete python scripts and the running dependencies in ```scripts``` and ```env```. Scripts for text-to-image and controlnet (depth/edge/pose/tile) are included. You can try efficient image enhancement via controlnet-tile models. We will release other accelerated models and training details in future.
-
-We provide fast text-to-multiview gradio interface in ```app/Wonder3D``` based on [Wonder3D](https://github.com/xxlong0/Wonder3D).
-Install ```diffusers 0.19.3``` with ```pip install diffusers==0.19.3``` before running.
-Run by 
-
-```
-python Wonder3D/sd15_t2mv_gradio.py
-```
-
-In the Gradio interface, hit 'enter' to generate the multiview images after typing the text.
+Scripts for text-to-image and controlnet (depth/edge/pose/tile) are included in ```scripts```. You can try efficient image enhancement via controlnet-tile models. We also provide fast text-to-multiview gradio interface in ```app/Wonder3D``` based on [Wonder3D](https://github.com/xxlong0/Wonder3D). Install ```diffusers 0.19.3``` and run ```python Wonder3D/sd15_t2mv_gradio.py```.
 
 
 ## Method: Accelerating Diffusion Models with Piecewise Rectified Flows
 
 [Rectified Flows](https://github.com/gnobitab/RectifiedFlow) proposes to contruct flow-based generative models via linear interpolation, and the trajectories of the learned flow can be straightened with a special operation called **reflow**. 
-However, the reflow procedure requires generating a synthetic dataset by simulating the entire pre-trained probability flow, which consumes a huge amount of storage and time, making it unfavorable for training large-scale foundation models.
-To address this limitation, we propose **piecewise rectified flow**. By dividing the pre-trained probability flows into multiple segments and straightening the intermediate probability flows inside each segment with reflow, we yield a piecewise linear probability flow that can be sampled within very few steps.
+However, the reflow procedure requires generating a synthetic dataset by simulating the entire pre-trained probability flow. This consumes a huge amount of storage and time, as well as induces large numerical errors in samples, making it unfavorable for training large-scale foundation models.
+To address this limitation, we propose **piecewise rectified flow**. By dividing the pre-trained probability flows into multiple time windows and straightening the intermediate probability flows inside each window with reflow, we yield a piecewise linear probability flow that can be sampled within very few steps.
 This divide-and-conquer strategy successfully avoids the cumbersome simulation of the whole ODE trajectory, thereby allowing us to perform the piecewise reflow operation online in training.
 
 <p align="middle">
-  <img src='assets/perflow.png' width='512'>
+  <img src='assets/perflow.png' width='640'>
 </p>
 
-As shown in the figure, the pre-trained probability flow (which can be transformed from a pre-trained diffusion model) maps random noise distribution $\pi_0$, to the data distribution $\pi_1$. 
+As shown in the figure, the pre-trained probability flow (which can be transformed from a pre-trained diffusion model) maps random noise distribution $\pi_1$, to the data distribution $\pi_0$. 
 It requires many steps to sample from the curved flow with ODE solvers.
 Instead, PeRFlow divides the sampling trajectories into multiple segments (two as an example here), and straightens each segment with the reflow operation. 
 A well-trained PeRFlow can generate high-quality images in very few steps because of its piecewise linear nature. 
 
-**Algorithms:**
-PeRFlow supports two common scenarios: given a pretrained model $\phi$ and a dataset $\mathcal{D}$ used for accelerating, 1) the domain of $\mathcal{D}$ aligns with the data domain used for training $\phi$, and 2) there is a gap between the domain of $\mathcal{D}$ and that of $\phi$. For the first case, we can use the pretrained model $\phi$ as a teacher and solve the low-noise-level state $z_{t_{k-1}}$ from $z_{t_k}$ via the corresponding probability-flow ODE solver $\Phi(\cdot, \phi)$. The procedure is summarized in ```PeRFlow Distillation```. For the second case, if we still use $\phi$ as the teacher, the sampling trajectories will be guided towards $\phi$'s domain rather than the data distribution. Instead, we can directly use a linear flow to fit the transform from marginal distribution $Z_{t_{k}}$ to marginal $Z_{t_{k-1}}$, which is summarized in ```PeRFlow Finetuning```.
 <p align="middle">
-  <img src='assets/algs.png' width=800'>
+  <img src='assets/algo.png' width=512'>
 </p>
 
 

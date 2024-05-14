@@ -6,7 +6,7 @@ from torchvision.utils import make_grid, save_image
 from diffusers import DiffusionPipeline  # only tested on diffusers[torch]==0.19.3, may have conflicts with newer versions of diffusers
 
 import sys
-sys.path.insert(0, sys.path[0]+"/../")
+sys.path.insert(0, sys.path[0]+"/../..")
 import src
 from src.scheduler_perflow import PeRFlowScheduler
 from diffusers import StableDiffusionPipeline, UNet2DConditionModel
@@ -55,7 +55,7 @@ pipe_t2i.scheduler = PeRFlowScheduler.from_config(pipe_t2i.scheduler.config, pre
 pipe_t2i.to('cuda:0', torch.float16)
 
 pipe_3d = merge_delta_weights_into_unet(pipe_3d, delta_weights)
-pipe_3d.scheduler = PeRFlowScheduler.from_config(pipe_3d.scheduler.config, prediction_type="epsilon", num_time_windows=4)
+pipe_3d.scheduler = PeRFlowScheduler.from_config(pipe_3d.scheduler.config, prediction_type="diff_eps", num_time_windows=4)
 pipe_3d.to('cuda:0', torch.float16)
 
 def generate_gif(prompt):
