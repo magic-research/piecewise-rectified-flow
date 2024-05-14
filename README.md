@@ -72,8 +72,8 @@ One also can use PeRFlow-Refiner separately to enhance texture and details of lo
   <img src='assets/gallery/multiview/dog_rgb.png' width='480'>
   <img src='assets/gallery/multiview/bird_normal.png' width='480'>
   <img src='assets/gallery/multiview/bird_rgb.png' width='480'>
-  <img src='assets/gallery/multiview/car_normal.png' width='480'>
-  <img src='assets/gallery/multiview/car_rgb.png' width='480'>
+  <!-- <img src='assets/gallery/multiview/car_normal.png' width='480'>
+  <img src='assets/gallery/multiview/car_rgb.png' width='480'> -->
 </p>
 
 <!-- A real-time video demo: -->
