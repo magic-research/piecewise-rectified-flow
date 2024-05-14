@@ -258,7 +258,7 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
         idx_start = (t_win_start*num_train_timesteps - 1 ).long()
         alphas_cumprod_start = self.alphas_cumprod[idx_start]
         
-        idx_end = torch.clamp( (t_win_end*num_train_timesteps - 1 ).long(), min=0)  #FIXME:
+        idx_end = torch.clamp( (t_win_end*num_train_timesteps - 1 ).long(), min=0)
         alphas_cumprod_end = self.alphas_cumprod[idx_end]
 
         alpha_cumprod_s_e = alphas_cumprod_start / alphas_cumprod_end      
@@ -306,14 +306,6 @@ class PeRFlowScheduler(SchedulerMixin, ConfigMixin):
             
             pred_win_end = lambda_t * sample + eta_t * pred_epsilon
             pred_velocity = (pred_win_end - sample) / (t_e - (t_s + c_to_s))
-            
-        # elif self.config.prediction_type == "diff_eps":
-        #     pred_epsilon = model_output
-        #     t_c = timestep / self.config.num_train_timesteps
-        #     t_s, t_e, win_len, c_to_s, gamma_s_e, _, _ = self.get_window_alpha(t_c)
-        #     pred_sample_end = ( sample - (1-c_to_s/win_len) * ((1-gamma_s_e**2)**0.5) * pred_epsilon ) \
-        #         / ( gamma_s_e + c_to_s / win_len * (1-gamma_s_e) )
-        #     pred_velocity = (pred_sample_end - sample) / (t_e - (t_s + c_to_s))
             
         elif self.config.prediction_type == "diff_eps":
             pred_epsilon = model_output
