@@ -252,11 +252,11 @@ A well-trained PeRFlow can generate high-quality images in very few steps becaus
 ## Citation
 
 ```
-@article{yan2024perflow,
-  title={PeRFlow: Accelerating Diffusion Models with Piecewise Rectified Flows},
+@article{yan_perflow_2024,
+  title={PeRFlow: Piecewise Rectified Flow as Universal Plug-and-Play Accelerator},
   author={Yan, Hanshu and Liu, Xingchao and Pan, Jiachun and Liew, Jun Hao and Liu, Qiang and Feng, Jiashi},
   year={2024},
-  url={https://piecewise-rectified-flow.github.io}
+  url={http://arxiv.org/abs/2405.07510}
 }
 
 ```
