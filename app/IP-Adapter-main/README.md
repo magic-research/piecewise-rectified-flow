@@ -1,0 +1,1 @@
+Refer to [IP-Adapter](github/piecewise-rectified-flow/app/IP-Adapter-main/_archive_/README.md) GitHub for related model weights. 
