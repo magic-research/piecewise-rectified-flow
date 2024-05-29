@@ -1,1 +1,1 @@
-Refer to [IP-Adapter](github/piecewise-rectified-flow/app/IP-Adapter-main/_archive_/README.md) GitHub for related model weights. 
+Refer to [IP-Adapter](https://github.com/tencent-ailab/IP-Adapter?tab=readme-ov-file#installation) GitHub for related model weights. 
