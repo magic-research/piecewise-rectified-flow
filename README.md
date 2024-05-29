@@ -92,7 +92,7 @@ Plug PeRFlow ${\Delta}W$ into [controlnets](https://huggingface.co/lllyasviel) o
 
 Plug PeRFlow ${\Delta}W$ into [IP-adaptor](https://github.com/tencent-ailab/IP-Adapter).
 <p align="middle">
-  <img src='assets/gallery/perflow_ip.png' width='784'>
+  <img src='assets/gallery/perflow_ip.jpg' width='384'>
 </p>
 
 Editing with PeRFlow+[Prompt-to-Prompt](https://github.com/google/prompt-to-prompt)
