@@ -430,8 +430,8 @@ def run_demo():
         ).success(
             process_3d, inputs=[mode, data_dir, scale_slider, crop_size], outputs=[obj_3d]
         )
-
-        demo.queue().launch(share=True, max_threads=80)
+        # Publish the service to localhost only 
+        demo.queue().launch(share=False, max_threads=80)
 
 
 if __name__ == '__main__':
